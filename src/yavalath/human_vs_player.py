@@ -47,7 +47,7 @@ def main():
     parser.add_argument(
         "--player",
         choices=sorted(PLAYER_FACTORIES.keys()),
-        default="inoue",
+        default="inouesModel",
         help="AI player type",
     )
     parser.add_argument(

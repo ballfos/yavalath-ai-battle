@@ -1,5 +1,6 @@
 from benchmark import BenchmarkRunner
 from players.inoue.player import InouePlayer
+from players.inoue.player2 import AInouePlayer
 from players.random.player import RandomPlayer
 from replay import ReplayViewer
 
@@ -7,7 +8,7 @@ from replay import ReplayViewer
 def main():
     # 1. プレイヤー準備
     p1 = InouePlayer("Inoue")
-    p2 = RandomPlayer("Random Player")
+    p2 = InouePlayer("Inoue2")
 
     # 2. ベンチマーク実行 (100戦)
     print(">>> Running Benchmark...")
