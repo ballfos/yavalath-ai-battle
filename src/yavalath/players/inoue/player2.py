@@ -3,7 +3,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch import nn
 
 from yavalath.core.board import Board, CellState, PutResult
 from yavalath.core.player import Player
@@ -16,8 +15,6 @@ from yavalath.players.inoue.dqn import (
 )
 
 # --- 定数設定 ---
-SEARCH_START_EMPTY_COUNT = 14  # 空きマスがこれ以下なら探索開始
-SEARCH_DEPTH_LIMIT = 4  # 何手先まで読むか
 INF = 10000.0  # 勝利スコア基準
 
 
@@ -37,7 +34,7 @@ def mask_q_values(q_values: torch.Tensor, legal_mask: np.ndarray) -> torch.Tenso
 
 
 class AInouePlayer(Player):
-    """ルールベースの吸着(勝利・防御)とDQN、さらに終盤探索を組み合わせたプレイヤー。"""
+    """ルールベースの吸着(勝利・防御)とDQN、さらに可変深度探索を組み合わせたプレイヤー。"""
 
     def __init__(self, name: str = "AInoue"):
         super().__init__(name)
@@ -55,8 +52,6 @@ class AInouePlayer(Player):
             return
 
         if not self._model_path.exists():
-            # モデルがない場合はランダム動作などを許容するためNoneのままにする
-            # print(f"Warning: Model file not found at {self._model_path}")
             self._model = None
             return
 
@@ -74,10 +69,13 @@ class AInouePlayer(Player):
     def calc_best(self, board: Board, player: CellState) -> tuple[int, int, int]:
         """
         優先順位:
-        0. (終盤のみ) Alpha-Beta探索で必勝手順または最善手を探す
-        1. 自分が勝てる手があるなら即採用
-        2. 相手が次に勝つ手があるなら、その場所を塞ぐ (候補をその場所に限定)
-        3. 自殺手 (3目) は除外する (ただし候補がなくなる場合は自殺手も許容)
+        0. Alpha-Beta探索 (進行度に応じて深さを可変にする)
+           - 序盤: 深さ2
+           - 中盤: 深さ3
+           - 終盤: 深さ4
+        1. (探索で見つからなかった場合) 自分が勝てる手があるなら即採用
+        2. 相手が次に勝つ手があるなら、その場所を塞ぐ
+        3. 自殺手 (3目) は除外する
         4. 残った候補からDQNで選択
         """
         empty_cells = list(board.get_empty_cells())
@@ -87,17 +85,29 @@ class AInouePlayer(Player):
         # モデルをロード (探索でもDQNを使うため早めにロード)
         self._ensure_model(board.radius)
 
-        # --- Phase 0: 終盤探索モード (Alpha-Beta with DQN evaluation) ---
-        # 空きマスが少ない場合、少し先の未来まで読んで判断する
-        if len(empty_cells) <= SEARCH_START_EMPTY_COUNT:
-            # print(f"Endgame Search: depth={SEARCH_DEPTH_LIMIT}, empty={len(empty_cells)}")
+        # --- Phase 0: 可変深度探索 (Adaptive Alpha-Beta) ---
+        n_empty = len(empty_cells)
+        current_depth = 0
+
+        # 空きマスの数に応じて探索深さを決定
+        if n_empty > 50:
+            current_depth = 2  # 序盤: 浅く読む (分岐数が多いため)
+        elif n_empty > 15:
+            current_depth = 3  # 中盤: そこそこ読む
+        else:
+            current_depth = 4  # 終盤: 深く読む
+
+        # 探索実行
+        if current_depth > 0:
+            # print(f"Search: depth={current_depth}, empty={n_empty}")
             best_move, _ = self._alpha_beta_search(
                 board,
                 player,
-                depth=SEARCH_DEPTH_LIMIT,
+                depth=current_depth,
                 alpha=-INF * 2,
                 beta=INF * 2,
             )
+            # 探索で見つかった最善手を返す
             if best_move is not None:
                 return best_move
 
@@ -203,7 +213,6 @@ class AInouePlayer(Player):
             return None, 0.0
 
         # 2. Move Ordering: DQNを使って候補手をソート
-        # (有望な手を先に探索することで枝刈りを増やす)
         if self._model is not None:
             sorted_moves = self._sort_moves_by_dqn(board, player, legal_moves)
         else:
