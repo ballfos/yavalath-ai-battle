@@ -19,7 +19,7 @@ class InouePlayer(Player):
     """ルールベースの吸着(勝利・防御)とDQNを組み合わせたプレイヤー。"""
 
     def __init__(self):
-        super().__init__("Inoue DQN", (0, 191, 255))
+        super().__init__("Inoue", (0, 191, 255))
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model = None
         self._action_space = None

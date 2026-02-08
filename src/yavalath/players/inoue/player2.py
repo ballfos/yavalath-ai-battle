@@ -39,7 +39,7 @@ def mask_q_values(q_values: torch.Tensor, legal_mask: np.ndarray) -> torch.Tenso
 class AInouePlayer(Player):
     """ルールベースの吸着(勝利・防御)とDQN、さらに終盤探索を組み合わせたプレイヤー。"""
 
-    def __init__(self, name: str = "Inoue Hybrid"):
+    def __init__(self, name: str = "AInoue"):
         super().__init__(name)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model = None
