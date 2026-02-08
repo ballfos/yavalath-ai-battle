@@ -3,6 +3,7 @@ import math
 import pygame
 
 from yavalath.core.board import Board, CellState
+from yavalath.core.player import Player
 
 # 色の定義
 COLOR_BG = (40, 44, 52)  # 背景色 (ダークグレー)
@@ -32,14 +33,14 @@ class PygameRenderer:
     def draw_game(
         self,
         board: Board,
-        first_player_name: str,
-        second_player_name: str,
+        p1: Player,
+        p2: Player,
         last_move=None,
         message="",
     ):
         self.screen.fill(COLOR_BG)
 
-        # 1. 六角形グリッドと駒の描画
+        # 六角形グリッドと駒の描画
         # 辞書の中身を回すのではなく、座標計算して全マス描画する
         for pos, state in board.board.items():
             x, y, z = pos
@@ -50,9 +51,18 @@ class PygameRenderer:
 
             # 駒があれば描く
             if state == CellState.PLAYER1:
-                self._draw_piece(cx, cy, COLOR_P1)
+                self._draw_piece(cx, cy, p1.color)
             elif state == CellState.PLAYER2:
-                self._draw_piece(cx, cy, COLOR_P2)
+                # p1とp2が同じなら色を変える
+                if p1.color == p2.color:
+                    altered_color = (
+                        min(p2.color[0] + 50, 255),
+                        min(p2.color[1] + 50, 255),
+                        min(p2.color[2] + 50, 255),
+                    )
+                    self._draw_piece(cx, cy, altered_color)
+                else:
+                    self._draw_piece(cx, cy, p2.color)
 
             # 直前の手なら赤枠をつける
             if last_move == pos:
@@ -64,15 +74,14 @@ class PygameRenderer:
                     3,
                 )
 
-            # デバッグ用に座標を表示（小さく）
-            # text = self.font.render(f"{x},{y},{z}", True, (100, 100, 100))
-            # self.screen.blit(text, (cx - 10, cy - 5))
-
-        # 2. UI情報の描画
-        if first_player_name and second_player_name:
-            info_text = f"{first_player_name} (Gold) vs {second_player_name} (Blue)"
+        # プレイヤー情報とメッセージ表示
+        if p1 and p2:
+            info_text = f"{p1.name}"
+            self.screen.blit(self.big_font.render(info_text, True, p1.color), (20, 20))
+            info_text = f"{p2.name}"
             self.screen.blit(
-                self.big_font.render(info_text, True, TEXT_COLOR), (20, 20)
+                self.big_font.render(info_text, True, p2.color),
+                (self.width - 20 - self.big_font.size(info_text)[0], 20),
             )
 
         if message:

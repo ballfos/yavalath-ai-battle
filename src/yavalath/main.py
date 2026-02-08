@@ -7,19 +7,19 @@ from yavalath.replay import ReplayViewer
 def main():
     # 1. プレイヤー準備
     p1 = KyawanPlayer()
-    p2 = RandomPlayer()
+    p2 = KyawanPlayer()
 
     # 2. ベンチマーク実行 (100戦)
     print(">>> Running Benchmark...")
     runner = BenchmarkRunner(p1, p2, radius=4)
-    best_game_moves = runner.run(num_games=4)
+    replay_data = runner.run(num_games=10)
 
     # 3. リプレイ起動
-    if best_game_moves:
-        print(f"\n>>> Replaying the longest game ({len(best_game_moves)} moves)")
+    if replay_data.history:
+        print(f"\n>>> Replaying the longest game ({len(replay_data.history)} moves)")
         print(">>> Press RIGHT arrow to proceed, LEFT to go back.")
 
-        viewer = ReplayViewer(best_game_moves, p1.name, p2.name, radius=4)
+        viewer = ReplayViewer(replay_data)
         viewer.run()
     else:
         print("No moves recorded.")

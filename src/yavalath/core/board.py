@@ -15,6 +15,14 @@ class CellState(Enum):
     PLAYER1 = 1
     PLAYER2 = 2
 
+    def opposite(self):
+        if self == CellState.PLAYER1:
+            return CellState.PLAYER2
+        elif self == CellState.PLAYER2:
+            return CellState.PLAYER1
+        else:
+            raise ValueError("EMPTY cell has no opposite.")
+
 
 class PutResult(Enum):
     CONTINUE = 0
