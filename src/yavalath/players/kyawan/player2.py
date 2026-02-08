@@ -10,7 +10,14 @@ import random
 from yavalath.core.board import Board, CellState, PutResult
 from yavalath.core.player import Player
 
-DEPTH = 3
+DEPTH_PHASE1 = 2
+DEPTH_PHASE2 = 3
+DEPTH_PHASE3 = 4
+DEPTH_PHASE4 = 8
+PHASE1_EMPTY_CELLS_THRESHOLD = 24
+PHASE2_EMPTY_CELLS_THRESHOLD = 12
+PHASE3_EMPTY_CELLS_THRESHOLD = 8
+
 WIN_SCORE = 10000
 LOSE_SCORE = -20000
 MINUS_PER_LOSE_CELL = 10
@@ -25,8 +32,19 @@ class KyawanPlayerV2(Player):
         )
 
     def calc_best(self, board, player) -> tuple[int, int, int]:
+        # フェーズに応じて探索深度を変更
+        empty_cells = board.get_empty_cells()
+        if len(empty_cells) > PHASE1_EMPTY_CELLS_THRESHOLD:
+            depth = DEPTH_PHASE1
+        elif len(empty_cells) > PHASE2_EMPTY_CELLS_THRESHOLD:
+            depth = DEPTH_PHASE2
+        elif len(empty_cells) > PHASE3_EMPTY_CELLS_THRESHOLD:
+            depth = DEPTH_PHASE3
+        else:
+            depth = DEPTH_PHASE4
+
         best_score, best_pos = self.negamax(
-            player, board, DEPTH, float("-inf"), float("inf")
+            player, board, depth, float("-inf"), float("inf")
         )
         if best_pos is None:
             best_pos = random.choice(board.get_empty_cells())
