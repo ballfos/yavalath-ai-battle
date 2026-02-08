@@ -21,6 +21,7 @@ class BenchmarkRunner:
         longest_game_history = []  # 最長試合の棋譜
         longest_game_first_player = None
         longest_game_len = -1
+        longest_game_names = None
 
         print(f"Starting {num_games} matches: {self.p1.name} vs {self.p2.name}")
 

@@ -1,4 +1,5 @@
 from yavalath.benchmark import BenchmarkRunner
+from yavalath.players.inoue.player import InouePlayer
 from yavalath.players.kyawan.player import KyawanPlayer
 from yavalath.players.random.player import RandomPlayer
 from yavalath.replay import ReplayViewer
@@ -6,8 +7,8 @@ from yavalath.replay import ReplayViewer
 
 def main():
     # 1. プレイヤー準備
-    p1 = KyawanPlayer()
-    p2 = KyawanPlayer()
+    p1 = InouePlayer("Inoue")
+    p2 = RandomPlayer("Random Player")
 
     # 2. ベンチマーク実行 (100戦)
     print(">>> Running Benchmark...")
