@@ -16,6 +16,7 @@ class BenchmarkRunner:
     def run(self, num_games: int):
         longest_game_moves = []  # 最長試合の棋譜
         longest_game_len = -1
+        longest_game_names = None
 
         print(f"Starting {num_games} matches: {self.p1.name} vs {self.p2.name}")
 
@@ -40,9 +41,10 @@ class BenchmarkRunner:
             if len(moves) > longest_game_len:
                 longest_game_len = len(moves)
                 longest_game_moves = moves
+                longest_game_names = (first.name, second.name)
 
         self._print_results(num_games)
-        return longest_game_moves
+        return longest_game_moves, longest_game_names
 
     def _play_one_game(
         self,
