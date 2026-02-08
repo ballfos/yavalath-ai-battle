@@ -7,8 +7,8 @@ from yavalath.replay import ReplayViewer
 
 def main():
     # 1. プレイヤー準備
-    p1 = InouePlayer("Inoue")
-    p2 = RandomPlayer("Random Player")
+    p1 = InouePlayer()
+    p2 = KyawanPlayer()
 
     # 2. ベンチマーク実行 (100戦)
     print(">>> Running Benchmark...")
