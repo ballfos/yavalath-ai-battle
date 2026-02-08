@@ -15,6 +15,14 @@ class CellState(Enum):
     PLAYER1 = 1
     PLAYER2 = 2
 
+    def opposite(self):
+        if self == CellState.PLAYER1:
+            return CellState.PLAYER2
+        elif self == CellState.PLAYER2:
+            return CellState.PLAYER1
+        else:
+            raise ValueError("EMPTY cell has no opposite.")
+
 
 class PutResult(Enum):
     CONTINUE = 0
@@ -160,6 +168,11 @@ class Board:
             x += dx
             y += dy
             z += dz
+
+            target = self.board.get((x, y, z))
+            if target is None or target == CellState.EMPTY:
+                break
+
             if self.board.get((x, y, z)) == player:
                 count += 1
             else:

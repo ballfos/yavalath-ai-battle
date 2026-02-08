@@ -12,11 +12,25 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=9.0.2"]
-
+dev = ["pytest>=9.0.2", "ruff>=0.15.0"]
 
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+# isortと、tidy-imports(インポート整理)のルールを有効化
+lint.select = ["I", "TID"]
+
+# 自動修正を許可
+lint.fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+# 自作パッケージを正しく認識させる
+known-first-party = ["yavalath"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+# 相対インポートを禁止 (見つけたら絶対インポートに書き換える)
+ban-relative-imports = "all"

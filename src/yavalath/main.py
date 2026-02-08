@@ -1,27 +1,26 @@
-from benchmark import BenchmarkRunner
-from players.inoue.player import InouePlayer
-from players.inoue.player2 import AInouePlayer
-from players.random.player import RandomPlayer
-from replay import ReplayViewer
+from yavalath.benchmark import BenchmarkRunner
+from yavalath.players.inoue.player import InouePlayer
+from yavalath.players.kyawan.player import KyawanPlayer
+from yavalath.players.random.player import RandomPlayer
+from yavalath.replay import ReplayViewer
 
 
 def main():
     # 1. プレイヤー準備
-    p1 = InouePlayer("Inoue")
-    p2 = InouePlayer("Inoue2")
+    p1 = InouePlayer()
+    p2 = KyawanPlayer()
 
     # 2. ベンチマーク実行 (100戦)
     print(">>> Running Benchmark...")
     runner = BenchmarkRunner(p1, p2, radius=4)
-    best_game_moves, best_game_names = runner.run(num_games=100)
+    replay_data = runner.run(num_games=10)
 
     # 3. リプレイ起動
-    if best_game_moves:
-        p1_name, p2_name = best_game_names or (p1.name, p2.name)
-        print(f"\n>>> Replaying the longest game ({len(best_game_moves)} moves)")
+    if replay_data.history:
+        print(f"\n>>> Replaying the longest game ({len(replay_data.history)} moves)")
         print(">>> Press RIGHT arrow to proceed, LEFT to go back.")
 
-        viewer = ReplayViewer(best_game_moves, p1_name, p2_name, radius=4)
+        viewer = ReplayViewer(replay_data)
         viewer.run()
     else:
         print("No moves recorded.")

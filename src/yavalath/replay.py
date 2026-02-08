@@ -1,27 +1,36 @@
 import sys
+from dataclasses import dataclass
 
 import pygame
-from core.board import Board, CellState
-from renderer import PygameRenderer  # 前回作成した描画クラスを流用
+
+from yavalath.core.board import Board, CellState
+from yavalath.core.player import Player
+from yavalath.renderer import PygameRenderer  # 前回作成した描画クラスを流用
+
+
+@dataclass
+class ReplayData:
+    p1: Player
+    p2: Player
+    first_player: CellState
+    history: list[tuple[int, int, int]]
+    radius: int
 
 
 class ReplayViewer:
-    def __init__(self, move_history, p1_name, p2_name, radius=4):
+    def __init__(self, replay_data: ReplayData):
         """
         move_history: [(CellState, (x, y, z)), ...] のリスト
         """
-        self.moves = move_history
-        self.radius = radius
-        self.p1_name = p1_name
-        self.p2_name = p2_name
-        self.board = Board(radius)
+        self.replay_data = replay_data
+        self.board = Board(replay_data.radius)
         self.current_step = 0  # 現在何手目まで表示しているか
 
         # Pygame setup
         pygame.init()
         screen = pygame.display.set_mode((1280, 720))
         pygame.display.set_caption("Yavalath Replay Viewer")
-        self.renderer = PygameRenderer(screen, radius)
+        self.renderer = PygameRenderer(screen, replay_data.radius)
 
         # UI用フォント
         self.font = pygame.font.SysFont("Arial", 24)
@@ -49,24 +58,26 @@ class ReplayViewer:
         pygame.quit()
 
     def _step_forward(self):
-        """1手進める"""
-        if self.current_step < len(self.moves):
-            color, pos = self.moves[self.current_step]
-            # putメソッドを使うが、勝敗判定は無視して盤面更新だけ利用
-            # (Boardの実装によってはputが例外を吐く可能性があるので直接代入でも可だが、put推奨)
+        """current_stepの手を適用してから1手進める"""
+        if self.current_step < len(self.replay_data.history):
+            player = self.replay_data.first_player
+            if self.current_step % 2 == 1:
+                player = player.opposite()
+            pos = self.replay_data.history[self.current_step]
             try:
-                self.board.board[pos] = color
-                # self.board.put(pos, color) # 勝敗判定ロジックが走るが描画だけなら直接代入でOK
+                self.board.put(pos, player)
             except:
                 pass
             self.current_step += 1
 
     def _step_backward(self):
-        """1手戻す"""
+        """1手戻してからcurrent_stepの手を取り除く"""
         if self.current_step > 0:
             self.current_step -= 1
-            color, pos = self.moves[self.current_step]
-            # Boardのpickメソッドを使って石を取り除く
+            player = self.replay_data.first_player
+            if self.current_step % 2 == 1:
+                player = player.opposite()
+            pos = self.replay_data.history[self.current_step]
             try:
                 self.board.pick(pos)
             except:
@@ -74,20 +85,26 @@ class ReplayViewer:
 
     def _draw(self):
         # メッセージ作成
-        msg = f"Step: {self.current_step} / {len(self.moves)}"
-        if self.current_step == len(self.moves):
+        msg = f"Step: {self.current_step} / {len(self.replay_data.history)}"
+        if self.current_step == len(self.replay_data.history):
             msg += " (Finished)"
 
         # 直前の手（ハイライト用）
         last_move = None
         if self.current_step > 0:
-            _, last_move = self.moves[self.current_step - 1]
+            last_move = self.replay_data.history[self.current_step - 1]
 
         # レンダラーに描画させる
+        if self.replay_data.first_player == CellState.PLAYER1:
+            first_player = self.replay_data.p1
+            second_player = self.replay_data.p2
+        else:
+            first_player = self.replay_data.p2
+            second_player = self.replay_data.p1
         self.renderer.draw_game(
             self.board,
-            p1_name=self.p1_name,
-            p2_name=self.p2_name,
+            first_player,
+            second_player,
             last_move=last_move,
             message=msg,
         )

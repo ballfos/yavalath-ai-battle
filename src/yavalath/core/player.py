@@ -4,8 +4,13 @@ from yavalath.core.board import Board, CellState
 
 
 class Player(ABC):
-    def __init__(self, name: str = "Anonymous"):
+    def __init__(
+        self,
+        name: str = "Anonymous",
+        color: tuple[int, int, int] = (255, 255, 255),
+    ):
         self.name = name
+        self.color = color
 
     @abstractmethod
     def calc_best(self, board: Board, player: CellState) -> tuple[int, int, int]:
