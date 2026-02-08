@@ -3,22 +3,39 @@ import math
 
 import pygame
 
-from core.board import Board, CellState, PutResult
-from renderer import PygameRenderer
-from players.inoue.player import InouePlayer
-from players.random.player import RandomPlayer
+from yavalath.core.board import Board, CellState, PutResult
+from yavalath.core.player import Player
+from yavalath.renderer import PygameRenderer
+from yavalath.players.inoue.player import InouePlayer
+from yavalath.players.random.player import RandomPlayer
+from yavalath.players.inoue.player2 import AInouePlayer
 
 
 PLAYER_FACTORIES = {
-    "inouesModel": InouePlayer,
+    "inoueModel": InouePlayer,
+    "ainoueModel": AInouePlayer,
 }
+
+COLOR_P1 = (229, 192, 123)
+COLOR_P2 = (97, 175, 239)
+
+
+class HumanPlayer(Player):
+    def __init__(self, name: str, color: tuple[int, int, int]):
+        super().__init__(name, color)
+
+    def calc_best(self, board: Board, player: CellState) -> tuple[int, int, int]:
+        raise NotImplementedError("Human player does not calculate moves.")
 
 
 def _build_ai(name: str):
     factory = PLAYER_FACTORIES.get(name)
     if factory is None:
         raise ValueError(f"Unknown player: {name}")
-    return factory(name.capitalize())
+    try:
+        return factory()
+    except TypeError:
+        return factory(name.capitalize())
 
 
 def _build_cell_centers(renderer: PygameRenderer, board: Board):
@@ -47,7 +64,7 @@ def main():
     parser.add_argument(
         "--player",
         choices=sorted(PLAYER_FACTORIES.keys()),
-        default="inouesModel",
+        default="ainoueModel",
         help="AI player type",
     )
     parser.add_argument(
@@ -68,9 +85,16 @@ def main():
     centers = _build_cell_centers(renderer, board)
 
     ai_player = _build_ai(args.player)
-    human_name = "Human"
-    p1_name = human_name if args.human == "p1" else ai_player.name
-    p2_name = ai_player.name if args.human == "p1" else human_name
+    human_player = HumanPlayer("Human", COLOR_P1 if args.human == "p1" else COLOR_P2)
+
+    if args.human == "p1":
+        p1 = human_player
+        p2 = ai_player
+        p2.color = COLOR_P2
+    else:
+        p1 = ai_player
+        p1.color = COLOR_P1
+        p2 = human_player
 
     turn = CellState.PLAYER1
     last_move = None
@@ -180,8 +204,8 @@ def main():
 
         renderer.draw_game(
             board,
-            p1_name,
-            p2_name,
+            p1,
+            p2,
             last_move=last_move,
             message=message,
         )
