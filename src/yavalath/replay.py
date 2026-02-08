@@ -1,8 +1,10 @@
 import sys
+from dataclasses import dataclass
 
 import pygame
-from core.board import Board, CellState
-from renderer import PygameRenderer  # 前回作成した描画クラスを流用
+
+from yavalath.core.board import Board, CellState
+from yavalath.renderer import PygameRenderer  # 前回作成した描画クラスを流用
 
 
 class ReplayViewer:
@@ -84,10 +86,16 @@ class ReplayViewer:
             _, last_move = self.moves[self.current_step - 1]
 
         # レンダラーに描画させる
+        if self.moves[0][0] == CellState.PLAYER1:
+            first_player_name = self.p1_name
+            second_player_name = self.p2_name
+        else:
+            first_player_name = self.p2_name
+            second_player_name = self.p1_name
         self.renderer.draw_game(
             self.board,
-            p1_name=self.p1_name,
-            p2_name=self.p2_name,
+            first_player_name,
+            second_player_name,
             last_move=last_move,
             message=msg,
         )

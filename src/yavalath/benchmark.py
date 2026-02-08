@@ -1,6 +1,9 @@
-from core.board import Board, CellState, PutResult
-from core.player import Player
+import copy
+
 from tqdm import tqdm
+
+from yavalath.core.board import Board, CellState, PutResult
+from yavalath.core.player import Player
 
 
 class BenchmarkRunner:
@@ -26,7 +29,7 @@ class BenchmarkRunner:
                 first_color, second_color = CellState.PLAYER1, CellState.PLAYER2
             else:
                 first, second = self.p2, self.p1
-                first_color, second_color = CellState.PLAYER1, CellState.PLAYER2
+                first_color, second_color = CellState.PLAYER2, CellState.PLAYER1
 
             # 1試合実行
             winner_name, moves = self._play_one_game(
@@ -69,8 +72,8 @@ class BenchmarkRunner:
                 return "Draw", move_history
 
             try:
-                # 思考 (タイムアウト処理は必要ならここにThreadを入れる)
-                pos = current_player.calc_best(board, turn)
+                board_copy = copy.deepcopy(board)
+                pos = current_player.calc_best(board_copy, turn)
 
                 # 置く (ルール違反ならValueErrorが出る -> 即負け)
                 result = board.put(pos, turn)
@@ -80,9 +83,7 @@ class BenchmarkRunner:
 
             except Exception as e:
                 # エラーを出したプレイヤーの負け
-                print(
-                    f"\nError by {current_player.name}: {e}"
-                )  # デバッグ時はコメントアウト解除
+                print(f"\nError by {current_player.name}: {e}")
                 winner = p_second if current_player == p_first else p_first
                 return winner.name, move_history
 

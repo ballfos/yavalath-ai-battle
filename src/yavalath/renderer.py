@@ -1,7 +1,8 @@
 import math
 
 import pygame
-from core.board import Board, CellState
+
+from yavalath.core.board import Board, CellState
 
 # 色の定義
 COLOR_BG = (40, 44, 52)  # 背景色 (ダークグレー)
@@ -29,7 +30,12 @@ class PygameRenderer:
         self.big_font = pygame.font.SysFont("Arial", 32, bold=True)
 
     def draw_game(
-        self, board: Board, p1_name: str, p2_name: str, last_move=None, message=""
+        self,
+        board: Board,
+        first_player_name: str,
+        second_player_name: str,
+        last_move=None,
+        message="",
     ):
         self.screen.fill(COLOR_BG)
 
@@ -63,8 +69,11 @@ class PygameRenderer:
             # self.screen.blit(text, (cx - 10, cy - 5))
 
         # 2. UI情報の描画
-        info_text = f"{p1_name} (Gold) vs {p2_name} (Blue)"
-        self.screen.blit(self.big_font.render(info_text, True, TEXT_COLOR), (20, 20))
+        if first_player_name and second_player_name:
+            info_text = f"{first_player_name} (Gold) vs {second_player_name} (Blue)"
+            self.screen.blit(
+                self.big_font.render(info_text, True, TEXT_COLOR), (20, 20)
+            )
 
         if message:
             msg_surf = self.big_font.render(message, True, COLOR_LAST_MOVE)

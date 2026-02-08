@@ -160,6 +160,11 @@ class Board:
             x += dx
             y += dy
             z += dz
+
+            target = self.board.get((x, y, z))
+            if target is None or target == CellState.EMPTY:
+                break
+
             if self.board.get((x, y, z)) == player:
                 count += 1
             else:
